@@ -33,6 +33,7 @@ class Message extends Component<MessageProps> {
         intl={this.props.intl}
         maxLength={this.props.payload.trimLength}
         escapeHTML={this.props.store.escapeHTML}
+        isBotMessage={this.props.isBotMessage}
       />
     )
   }
@@ -52,7 +53,15 @@ class Message extends Component<MessageProps> {
   }
 
   render_carousel() {
-    return <Carousel onSendData={this.props.onSendData} carousel={this.props.payload} />
+    return (
+      <Carousel
+        onSendData={this.props.onSendData}
+        carousel={this.props.payload}
+        escapeHTML={this.props.store.escapeHTML}
+        isBotMessage={this.props.isBotMessage}
+        intl={this.props.intl}
+      />
+    )
   }
 
   render_typing() {
@@ -161,6 +170,12 @@ class Message extends Component<MessageProps> {
 
   async onMessageClicked() {
     await this.props.store.loadEventInDebugger(this.props.messageId, true)
+  }
+
+  componentDidMount() {
+    this.props.isLastGroup &&
+      this.props.isLastOfGroup &&
+      this.props.store.composer.setLocked(this.props.payload.disableFreeText)
   }
 
   render() {

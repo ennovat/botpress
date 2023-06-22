@@ -9,6 +9,7 @@ import { ModuleConfigEntry } from 'core/config'
 import { LoggerProvider } from 'core/logger'
 import { ModuleLoader, ModuleResolver } from 'core/modules'
 import fs from 'fs'
+import isElevated from 'is-elevated'
 import { AppLifecycle, AppLifecycleEvents } from 'lifecycle'
 import _ from 'lodash'
 import { setupMasterNode, setupWebWorker, WorkerType } from 'orchestrator'
@@ -112,8 +113,16 @@ async function start() {
   const loggerProvider = createLoggerProvider()
   if (cluster.isMaster) {
     await setupDebugLogger(loggerProvider)
+    const logger = await getLogger(loggerProvider, 'Cluster')
+
+    if (await isElevated()) {
+      logger.warn(
+        'You are running Botpress as a privileged user. This is not recommended. Please consider running it as an unprivileged user.'
+      )
+    }
+
     // The master process only needs getos and rewire
-    return setupMasterNode(await getLogger(loggerProvider, 'Cluster'))
+    return setupMasterNode(logger)
   }
 
   await setupDebugLogger(loggerProvider)
@@ -215,8 +224,17 @@ This is a fatal error, process will exit.`
 
   // This ensures that the last log displayed is the correct URL
   await AppLifecycle.waitFor(AppLifecycleEvents.STUDIO_READY)
-  logger.info(`Botpress is listening at: ${process.LOCAL_URL}`)
-  logger.info(`Botpress is exposed at: ${process.EXTERNAL_URL}`)
+
+  logger.info('')
+  logger.info('='.repeat(75))
+  logger.info('-->  Documentation is available at    📘 https://botpress.com/docs')
+  logger.info('-->  Ask your questions on            👥 https://forum.botpress.com')
+  logger.info('='.repeat(75))
+  logger.info('')
+
+  logger.info(chalk.bold('Botpress is ready. open the Studio in your favorite browser.'))
+  logger.info(chalk.bold(`Botpress is listening at ${process.LOCAL_URL} (browser)`))
+  logger.info(chalk.bold(`Botpress is exposed at ${process.EXTERNAL_URL}`))
 }
 
 start().catch(global.printErrorDefault)

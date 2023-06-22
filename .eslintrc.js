@@ -9,7 +9,7 @@ module.exports = {
   parserOptions: {
     project: [
       './packages/*/tsconfig.json',
-      './packages/bp/src/admin/ui/tsconfig.json',
+      './packages/bp/e2e/tsconfig.json',
       './modules/tsconfig*.eslint.json',
       './internal-modules/tsconfig*.eslint.json',
       './build/module-builder/tsconfig.json',
@@ -32,6 +32,7 @@ module.exports = {
   rules: {
     '@typescript-eslint/array-type': 'error',
     '@typescript-eslint/no-non-null-asserted-optional-chain': 'error',
+    '@typescript-eslint/await-thenable': 'error',
     '@typescript-eslint/consistent-type-definitions': 'error',
     '@typescript-eslint/member-delimiter-style': [
       'error',

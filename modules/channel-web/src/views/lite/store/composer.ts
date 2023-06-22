@@ -40,6 +40,11 @@ class ComposerStore {
     return this.rootStore.config?.composerPlaceholder
   }
 
+  @computed
+  get composerMaxTextLength(): number {
+    return this.rootStore.botInfo?.maxMessageLength
+  }
+
   @action.bound
   updateMessage(msg: string) {
     this.message = msg
@@ -77,7 +82,7 @@ class ComposerStore {
 
   @action.bound
   setLocked(locked: boolean) {
-    this.locked = locked
+    this.locked = !!locked
   }
 
   @action.bound

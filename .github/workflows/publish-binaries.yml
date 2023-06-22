@@ -1,11 +1,17 @@
 name: Release Binaries
 on:
-  push:
-    branches:
-      - '**'
+  pull_request:
+    types: [review_requested]
+  release:
+    types: [published]
+permissions:
+  contents: read
 
 jobs:
-  pre_release_bin:
+  release_bin:
+    # Do not publish dependabot branches
+    if: startsWith(github.head_ref, 'dependabot/') != true
+
     name: Build and Publish Binaries
     runs-on: ubuntu-latest
     steps:
@@ -14,11 +20,11 @@ jobs:
 
       - uses: actions/setup-node@v2
         with:
-          node-version: '12.18.1'
+          node-version-file: '.nvmrc'
           cache: 'yarn'
 
       - name: Configure SSH Key
-        uses: botpress/gh-actions/set_ssh_key@master
+        uses: botpress/gh-actions/set_ssh_key@v1
         with:
           ssh_key: ${{ secrets.BP_PRO_SSH }}
 
@@ -43,17 +49,27 @@ jobs:
         run: yarn cmd archive
 
       - name: Rename Binary Files
-        uses: botpress/gh-actions/rename_binaries@master
+        if: ${{ github.event_name == 'pull_request' && github.event.action == 'review_requested' }}
+        uses: botpress/gh-actions/rename_binaries@v1
         with:
           path: ./packages/bp/archives
 
-      - name: Extract Informations
+      - name: Extract Information
         id: info
-        uses: botpress/gh-actions/extract_info@master
+        uses: botpress/gh-actions/extract_info@v1
 
-      - name: Publish Binaries
+      - name: Publish Dev Binaries
+        if: ${{ github.event_name == 'pull_request' && github.event.action == 'review_requested' }}
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
           aws s3 sync packages/bp/archives s3://botpress-dev-bins/botpress/${{ steps.info.outputs.branch_sanitized }}
+
+      - name: Publish Prod Binaries
+        if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          aws s3 sync packages/bp/archives s3://botpress-binaries/

@@ -21,6 +21,9 @@ declare global {
     botpress: {
       [moduleName: string]: any
     }
+    APP_NAME: string
+    APP_FAVICON: string
+    APP_CUSTOM_CSS: string
   }
 }
 
@@ -91,6 +94,7 @@ export namespace Renderer {
     buttons: any
     quick_replies: any
     disableFreeText: boolean
+    displayInMessage?: boolean
   } & Message
 
   export type QuickReplyButton = {
@@ -138,6 +142,7 @@ export namespace Renderer {
     title: string
     subtitle: string
     buttons: CardButton[]
+    markdown: boolean
   }
 
   export interface CardButton {
@@ -223,9 +228,13 @@ export interface Config {
   chatId?: string
   /** CSS class to be applied to iframe */
   className?: string
+  /** Force the display to use a specific mode (Fullscreen or Embedded)
+   * Defaults to 'Embedded'
+   */
+  viewMode?: 'Embedded' | 'Fullscreen'
 }
 
-type OverridableComponents = 'below_conversation' | 'before_container' | 'composer'
+type OverridableComponents = 'below_conversation' | 'before_container' | 'composer' | 'before_widget'
 
 interface Overrides {
   [componentToOverride: string]: [
@@ -255,6 +264,8 @@ export interface BotInfo {
     escapeHTML: boolean
   }
   lazySocket: boolean
+  maxMessageLength: number
+  alwaysScrollDownOnMessages: boolean
 }
 
 export type uuid = string
